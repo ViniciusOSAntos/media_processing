@@ -7,6 +7,7 @@ cachetools==6.2.1
 certifi==2025.10.5
 charset-normalizer==3.4.4
 click==8.3.0
+coverage==7.12.0
 dill==0.4.0
 fastapi==0.120.1
 google-api-core==2.27.0
@@ -35,6 +36,7 @@ pydantic_core==2.41.4
 Pygments==2.19.2
 pylint==4.0.2
 pytest==8.4.2
+pytest-cov==7.0.0
 pytokens==0.2.0
 requests==2.32.5
 rsa==4.9.1

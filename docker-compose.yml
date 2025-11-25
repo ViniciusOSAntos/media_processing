@@ -1,0 +1,12 @@
+services:
+  gcs:
+    container_name: cloud-storage
+    image: fsouza/fake-gcs-server
+    command: -scheme http -port 4443 -data /storage -public-host 0.0.0.0:4443
+    volumes:
+      - vol_storage:/storage
+    ports:
+      - "4443:4443"
+
+volumes:
+    vol_storage:
