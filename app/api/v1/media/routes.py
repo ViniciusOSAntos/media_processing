@@ -5,6 +5,9 @@ from app.api.v1.media.services import (
     upload_media_service
 )
 
+from app.api.v1.media.schemas import (
+    MediaReturnSchema
+)
 routes = APIRouter(prefix="/v1/media", tags=["media"])
 
 # TODO Return All Medias
@@ -20,10 +23,10 @@ async def get_media_by_id(media_id: str) -> dict:
 @routes.post(
     "/upload",
     status_code=status.HTTP_201_CREATED,
+    response_model=List[MediaReturnSchema]
 )
 async def create_media(
     request: Request,
     files: List[UploadFile] = File(...),
 ) -> List[dict]:
-    await upload_media_service(files)
-    return [{"Media": "Created"}]
+    return await upload_media_service(files)
