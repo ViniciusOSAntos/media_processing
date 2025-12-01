@@ -2,7 +2,8 @@ from typing import List
 from fastapi import APIRouter, UploadFile, File, status, Request
 
 from app.api.v1.media.services import (
-    upload_media_service
+    upload_media_service,
+    get_media_by_name_service
 )
 
 from app.api.v1.media.schemas import (
@@ -16,9 +17,14 @@ async def get_medias() -> dict:
     return {"media_status": "online"}
 
 # TODO Return Media By ID
-@routes.get("/{media_id}")
-async def get_media_by_id(media_id: str) -> dict:
-    return {"media": media_id}
+@routes.get(
+    "/{media_name}",
+    status_code=status.HTTP_200_OK,
+    response_model=MediaReturnSchema
+)
+async def get_media_by_name(media_name: str) -> dict:
+    return await get_media_by_name_service(media_name)
+
 
 @routes.post(
     "/upload",

@@ -2,7 +2,7 @@ from uuid import uuid4
 from typing import List
 from datetime import timedelta
 
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from loguru import logger
 from app.core.google import Google
 from app.core.config import Settings
@@ -49,4 +49,35 @@ async def upload_media_service(
 
         return_metadata.append(metadata)
 
+    storage_client.close()
+
     return return_metadata
+
+async def get_media_by_name_service(
+    media_name: str
+):
+    storage_client = google.get_storage_client()
+    bucket_name = f"bkt-media-processing-{settings.environment}"
+    bucket = storage_client.bucket(bucket_name)
+    prefix_params = {"prefix": "media-processing"}
+
+    blobs = bucket.list_blobs()
+    logger.debug(blobs)
+
+    for blob in blobs:
+        logger.debug(blob.name)
+        if blob.name == f"{prefix_params.get('prefix')}/{media_name}":
+            logger.success(f"Media Found {blob.name}")
+            metadata = blob.metadata or {}
+
+            return {
+                "name": blob.name,
+                "id": metadata.get("id"),
+                "created_at": blob.time_created,
+                "updated_at": blob.updated,
+                "download_url": blob.public_url,
+            }
+    raise HTTPException(
+        status_code=404,
+        detail="Media not found."
+    )
