@@ -85,3 +85,24 @@ async def get_media_by_name_service(
         status_code=404,
         detail="Media not found."
     )
+
+async def delete_media_by_name_service(
+    media_name: str
+):
+    storage_client = google.get_storage_client()
+    bucket_name = f"bkt-media-processing-{settings.environment}"
+    bucket = storage_client.bucket(bucket_name)
+    prefix_params = {"prefix": "media-processing"}
+
+    blobs = bucket.list_blobs()
+    logger.debug(blobs)
+
+    blob_found = await iterate_blobs(
+        blobs=blobs,
+        prefix_params=prefix_params,
+        media_name=media_name
+    )
+
+    if blob_found:
+        blob_found.delete()
+        
