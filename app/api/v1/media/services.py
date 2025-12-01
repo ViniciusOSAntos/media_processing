@@ -6,14 +6,14 @@ from fastapi import UploadFile, HTTPException
 from loguru import logger
 from app.core.google import Google
 from app.core.config import Settings
-
+from app.api.v1.media.dependencies import iterate_blobs
 google = Google()
 settings = Settings()
 
 async def upload_media_service(
     files: List[UploadFile]
 ) -> List[dict]:
-
+    # queria ajuda para estruturar os tratamentos de excessão
     return_metadata = []
     storage_client = google.get_storage_client()
     bucket_name = f"bkt-media-processing-{settings.environment}"
@@ -56,6 +56,7 @@ async def upload_media_service(
 async def get_media_by_name_service(
     media_name: str
 ):
+    # queria ajuda para estruturar os tratamentos de excessão
     storage_client = google.get_storage_client()
     bucket_name = f"bkt-media-processing-{settings.environment}"
     bucket = storage_client.bucket(bucket_name)
@@ -64,19 +65,22 @@ async def get_media_by_name_service(
     blobs = bucket.list_blobs()
     logger.debug(blobs)
 
-    for blob in blobs:
-        logger.debug(blob.name)
-        if blob.name == f"{prefix_params.get('prefix')}/{media_name}":
-            logger.success(f"Media Found {blob.name}")
-            metadata = blob.metadata or {}
+    blob_found = await iterate_blobs(
+        blobs=blobs,
+        prefix_params=prefix_params,
+        media_name=media_name
+    )
 
-            return {
-                "name": blob.name,
-                "id": metadata.get("id"),
-                "created_at": blob.time_created,
-                "updated_at": blob.updated,
-                "download_url": blob.public_url,
-            }
+    if blob_found:
+        metadata = blob_found.metadata or {}
+        return {
+            "name": blob_found.name,
+            "id": metadata.get("id"),
+            "created_at": blob_found.time_created,
+            "updated_at": blob_found.updated,
+            "download_url": blob_found.public_url,
+        }
+
     raise HTTPException(
         status_code=404,
         detail="Media not found."
