@@ -12,12 +12,7 @@ from app.api.v1.media.schemas import (
 )
 routes = APIRouter(prefix="/v1/media", tags=["media"])
 
-# TODO Return All Medias
-@routes.get("/")
-async def get_medias() -> dict:
-    return {"media_status": "online"}
 
-# TODO Return Media By ID
 @routes.get(
     "/{media_name}",
     status_code=status.HTTP_200_OK,
