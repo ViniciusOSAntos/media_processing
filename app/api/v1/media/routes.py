@@ -12,7 +12,6 @@ from app.api.v1.media.schemas import (
 )
 routes = APIRouter(prefix="/v1/media", tags=["media"])
 
-
 @routes.get(
     "/{media_name}",
     status_code=status.HTTP_200_OK,
