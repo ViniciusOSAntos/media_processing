@@ -11,7 +11,7 @@ format: ## Run format
 	@black . --line-length 79
 
 test:
-	python -m pytest tests/ --cov --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml --cov-config=.coveragerc
+	python -m pytest tests/ -v -s --cov --cov-report term --cov-report xml:coverage.xml --junitxml=report.xml --cov-config=.coveragerc
 
 docker_build:
 	@docker-compose build
