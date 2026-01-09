@@ -20,5 +20,3 @@ def get_db(): # Cada chamada de get_db criará uma sessão independente
         yield db # Qnd se yield (ao invés de return) a função fica "parada" esperando que o item seja "devolvido"
     finally:
         db.close()
-
-get_db()
