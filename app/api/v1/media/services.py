@@ -3,10 +3,13 @@ from typing import List
 from datetime import timedelta
 
 from fastapi import UploadFile, HTTPException
+from sqlalchemy.orm import Session
+
 from loguru import logger
 from app.core.google import Google
 from app.core.config import Settings
 from app.api.v1.media.dependencies import iterate_blobs
+from app.api.v1.media import models
 google = Google()
 settings = Settings()
 
@@ -14,6 +17,7 @@ async def upload_media_service(
     files: List[UploadFile]
 ) -> List[dict]:
     # queria ajuda para estruturar os tratamentos de excessão
+    # DB Conn
     return_metadata = []
     storage_client = google.get_storage_client()
     bucket_name = f"bkt-media-processing-{settings.environment}"
@@ -105,4 +109,15 @@ async def delete_media_by_name_service(
 
     if blob_found:
         blob_found.delete()
-        
+
+def create_video_metadata(db: Session, video_metadata: dict):
+    new_video_metadata = models.VideoMetadata(
+        name=video_metadata.get("name"),
+        codec=video_metadata.get("codec"),
+        frame_rate=video_metadata.get("frame_rate")
+    )
+    db.add(new_video_metadata)
+    db.commit()
+    db.refresh(new_video_metadata)
+
+    return new_video_metadata
