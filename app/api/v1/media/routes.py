@@ -1,11 +1,15 @@
 from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, status, Request
 from sqlalchemy.orm import Session
+
 from app.api.v1.media.services import (
     upload_media_service,
     get_media_by_name_service,
     delete_media_by_name_service,
-    create_video_metadata
+    create_video_metadata,
+    save_file_tmp,
+    delete_file_tmp,
+    get_video_metadata
 )
 
 from app.api.v1.media.db import (
@@ -13,7 +17,8 @@ from app.api.v1.media.db import (
 )
 
 from app.api.v1.media.schemas import (
-    MediaReturnSchema
+    MediaReturnSchema,
+    MediaMetadataSchema
 )
 
 routes = APIRouter(prefix="/v1/media", tags=["media"])
@@ -37,11 +42,17 @@ async def create_media(
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ) -> List[dict]:
-    create_video_metadata(db, {
+    mock_metadata = {
         "name": "video_teste.mp4",
         "codec": "h.264",
-        "frame_rate": 30
-    })
+        "frame_rate": 30,
+    }
+    video_metadata = MediaMetadataSchema(**mock_metadata)
+    await save_file_tmp(files[0])
+    await get_video_metadata(files[0].filename)
+    await create_video_metadata(db, video_metadata)
+    await delete_file_tmp(files[0].filename)
+
     return await upload_media_service(files)
 
 @routes.delete(
