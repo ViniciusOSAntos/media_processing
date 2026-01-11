@@ -1,3 +1,7 @@
+import os
+import ffmpeg
+import json
+
 from uuid import uuid4
 from typing import List
 from datetime import timedelta
@@ -9,7 +13,9 @@ from loguru import logger
 from app.core.google import Google
 from app.core.config import Settings
 from app.api.v1.media.dependencies import iterate_blobs
-from app.api.v1.media import models
+from app.api.v1.media import models, schemas
+
+UPLOAD_DIR = "./tmp"
 google = Google()
 settings = Settings()
 
@@ -110,14 +116,41 @@ async def delete_media_by_name_service(
     if blob_found:
         blob_found.delete()
 
-def create_video_metadata(db: Session, video_metadata: dict):
+async def create_video_metadata(db: Session, video_metadata: schemas.MediaMetadataSchema):
     new_video_metadata = models.VideoMetadata(
-        name=video_metadata.get("name"),
-        codec=video_metadata.get("codec"),
-        frame_rate=video_metadata.get("frame_rate")
+        name=video_metadata.name,
+        codec=video_metadata.codec,
+        frame_rate=video_metadata.frame_rate
     )
     db.add(new_video_metadata)
     db.commit()
     db.refresh(new_video_metadata)
 
     return new_video_metadata
+
+async def save_file_tmp(file: UploadFile):
+    file_location = f"./{UPLOAD_DIR}/{file.filename}"
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+    with open(file_location, 'wb') as buffer:
+        buffer.write(await file.read())
+
+        logger.debug(f"File: {file.filename} saved in tmp")
+
+async def delete_file_tmp(file_name: str):
+    file_location = f"./{UPLOAD_DIR}/{file_name}"
+    if os.path.exists(file_location):
+        os.remove(f"./{UPLOAD_DIR}/{file_name}")
+        logger.debug("File Deleted")
+    else:
+        logger.debug(f"Delete file failed, file {file_location} does NOT exist")
+
+async def get_video_metadata(file_name: str):
+    file_location = f"./{UPLOAD_DIR}/{file_name}"
+    video_metadata = ffmpeg.probe(file_location)
+    logger.debug(
+        "Video Metadata:\n{}",
+        json.dumps(video_metadata, indent=4, ensure_ascii=False)
+    )
+
+    return video_metadata
