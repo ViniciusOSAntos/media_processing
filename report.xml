@@ -1,1 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="0" skipped="0" tests="1" time="1.088" timestamp="2025-12-04T14:50:25.134543-03:00" hostname="WPA092ZP51N3N.corp.tvglobo.com.br, globosat.net.br"><testcase classname="tests.v1.media.test_get_media_by_id" name="test_post_blob" time="0.024" /></testsuite></testsuites>
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="1" skipped="0" tests="2" time="1.601" timestamp="2025-12-04T15:01:39.608568-03:00" hostname="WPA092ZP51N3N.corp.tvglobo.com.br, globosat.net.br"><testcase classname="tests.v1.media.test_get_media_by_id" name="test_post_blob" time="0.024" /><testcase classname="tests.v1.media.test_get_media_by_id" name="test_get_blob_by_name" time="0.481"><failure message="assert 404 == 200&#10; +  where 404 = &lt;Response [404 Not Found]&gt;.status_code">def test_get_blob_by_name():
+        response = client.get("/v1/media/test_file_red.jpg")
+&gt;       assert response.status_code == 200
+E       assert 404 == 200
+E        +  where 404 = &lt;Response [404 Not Found]&gt;.status_code
+
+tests/v1/media/test_get_media_by_id.py:30: AssertionError</failure></testcase></testsuite></testsuites>

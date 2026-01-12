@@ -18,7 +18,6 @@ from app.api.v1.media.db import (
 
 from app.api.v1.media.schemas import (
     MediaReturnSchema,
-    MediaMetadataSchema
 )
 
 routes = APIRouter(prefix="/v1/media", tags=["media"])
@@ -42,18 +41,8 @@ async def create_media(
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
 ) -> List[dict]:
-    mock_metadata = {
-        "name": "video_teste.mp4",
-        "codec": "h.264",
-        "frame_rate": 30,
-    }
-    video_metadata = MediaMetadataSchema(**mock_metadata)
-    await save_file_tmp(files[0])
-    await get_video_metadata(files[0].filename)
-    await create_video_metadata(db, video_metadata)
-    await delete_file_tmp(files[0].filename)
 
-    return await upload_media_service(files)
+    return await upload_media_service(files, db)
 
 @routes.delete(
     "/{media_name}",

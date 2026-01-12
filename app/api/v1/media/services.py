@@ -1,7 +1,3 @@
-import os
-import ffmpeg
-import json
-
 from uuid import uuid4
 from typing import List
 from datetime import timedelta
@@ -12,15 +8,21 @@ from sqlalchemy.orm import Session
 from loguru import logger
 from app.core.google import Google
 from app.core.config import Settings
-from app.api.v1.media.dependencies import iterate_blobs
+from app.api.v1.media.dependencies import (
+    iterate_blobs,
+    save_file_tmp,
+    delete_file_tmp,
+    get_video_metadata
+)
 from app.api.v1.media import models, schemas
 
-UPLOAD_DIR = "./tmp"
+
 google = Google()
 settings = Settings()
 
 async def upload_media_service(
-    files: List[UploadFile]
+    files: List[UploadFile],
+    db: Session
 ) -> List[dict]:
     # queria ajuda para estruturar os tratamentos de excessão
     # DB Conn
@@ -58,6 +60,19 @@ async def upload_media_service(
         metadata["download_url"] = blob.public_url
 
         return_metadata.append(metadata)
+
+        mock_metadata = {
+            "name": "video_teste.mp4",
+            "codec": "h.264",
+            "frame_rate": 30,
+        }
+        await file.seek(0)
+        video_metadata = schemas.MediaMetadataSchema(**mock_metadata)
+        await save_file_tmp(file)
+        await get_video_metadata(file.filename)
+        await create_video_metadata(db, video_metadata) # Insere no banco
+        await delete_file_tmp(file.filename)
+
 
     storage_client.close()
 
@@ -127,30 +142,3 @@ async def create_video_metadata(db: Session, video_metadata: schemas.MediaMetada
     db.refresh(new_video_metadata)
 
     return new_video_metadata
-
-async def save_file_tmp(file: UploadFile):
-    file_location = f"./{UPLOAD_DIR}/{file.filename}"
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-    with open(file_location, 'wb') as buffer:
-        buffer.write(await file.read())
-
-        logger.debug(f"File: {file.filename} saved in tmp")
-
-async def delete_file_tmp(file_name: str):
-    file_location = f"./{UPLOAD_DIR}/{file_name}"
-    if os.path.exists(file_location):
-        os.remove(f"./{UPLOAD_DIR}/{file_name}")
-        logger.debug("File Deleted")
-    else:
-        logger.debug(f"Delete file failed, file {file_location} does NOT exist")
-
-async def get_video_metadata(file_name: str):
-    file_location = f"./{UPLOAD_DIR}/{file_name}"
-    video_metadata = ffmpeg.probe(file_location)
-    logger.debug(
-        "Video Metadata:\n{}",
-        json.dumps(video_metadata, indent=4, ensure_ascii=False)
-    )
-
-    return video_metadata
