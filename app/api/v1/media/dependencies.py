@@ -37,8 +37,23 @@ async def delete_file_tmp(file_name: str):
 async def get_video_metadata(file_name: str):
     file_location = f"./{UPLOAD_DIR}/{file_name}"
     logger.debug(f"File Location: {file_location}")
+    return_metadata = {}
     try:
         video_metadata = ffmpeg.probe(file_location)
+
+        return_metadata["name"] = (
+            video_metadata
+            .get("format", {})
+            .get("filename", "")
+            .split("/")[-1]
+        )
+
+        return_metadata["codec"] = (
+            video_metadata
+            .get("streams", {})
+            .get("codec_name", "")
+        )
+
     except Exception as e:
         logger.error(f"Erro no probe: {e.stderr.decode('utf-8', errors='ignore')}")
     logger.debug(
@@ -46,4 +61,4 @@ async def get_video_metadata(file_name: str):
         json.dumps(video_metadata, indent=4, ensure_ascii=False)
     )
 
-    return video_metadata
+    return return_metadata
