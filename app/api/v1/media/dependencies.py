@@ -2,10 +2,11 @@ import os
 import ffmpeg
 import json
 import shutil
+import pathlib
 
 from fastapi import UploadFile
 from loguru import logger
-
+from tempfile import NamedTemporaryFile, gettempdir
 UPLOAD_DIR = "tmp"
 
 async def iterate_blobs(blobs, prefix_params, media_name) -> dict:
@@ -16,26 +17,27 @@ async def iterate_blobs(blobs, prefix_params, media_name) -> dict:
             metadata = blob.metadata or {}
 
             return blob
-async def save_file_tmp(file: UploadFile):
-    file_location = f"./{UPLOAD_DIR}/{file.filename}"
-    os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-    with open(file_location, 'wb') as buffer:
-        shutil.copyfileobj(file.file, buffer)
-        buffer.flush()
-        os.fsync(buffer.fileno())
-        logger.debug(f"File: {file.filename} saved in tmp")
+async def save_file_tmp(file: UploadFile):
+    suffix = pathlib.Path(file.filename).suffix
+    with NamedTemporaryFile(
+        mode='w+b',
+        delete=False,
+        suffix=suffix
+    ) as temp_file:
+        shutil.copyfileobj(file.file, temp_file)
+        logger.debug(gettempdir())
+        return temp_file.name
 
 async def delete_file_tmp(file_name: str):
-    file_location = f"./{UPLOAD_DIR}/{file_name}"
-    if os.path.exists(file_location):
-        os.remove(f"./{UPLOAD_DIR}/{file_name}")
-        logger.debug("File Deleted")
+    if os.path.exists(file_name):
+        os.remove(file_name)
+        logger.debug("Temp File Deleted")
     else:
-        logger.debug(f"Delete file failed, file {file_location} does NOT exist")
+        logger.error(f"Delete file failed, file {file_location} does NOT exist")
 
 async def get_video_metadata(file_name: str):
-    file_location = f"./{UPLOAD_DIR}/{file_name}"
+    file_location = file_name
     logger.debug(f"File Location: {file_location}")
     return_metadata = {}
     try:
@@ -50,12 +52,17 @@ async def get_video_metadata(file_name: str):
 
         return_metadata["codec"] = (
             video_metadata
-            .get("streams", {})
+            .get("streams", {})[0]
             .get("codec_name", "")
         )
 
     except Exception as e:
-        logger.error(f"Erro no probe: {e.stderr.decode('utf-8', errors='ignore')}")
+        if e.stderr.decode('utf-8', errors='ignore').startswith("ffprobe"):
+            logger.error(f"Erro no probe: {e.stderr.decode('utf-8', errors='ignore')}")
+            video_metadata = None
+        else:
+            logger.error(f"Erro no probe: {e}")
+
     logger.debug(
         "Video Metadata:\n{}",
         json.dumps(video_metadata, indent=4, ensure_ascii=False)

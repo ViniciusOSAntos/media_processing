@@ -27,7 +27,7 @@ routes = APIRouter(prefix="/v1/media", tags=["media"])
     status_code=status.HTTP_200_OK,
     response_model=MediaReturnSchema
 )
-async def get_media_by_name(media_name:1 str) -> dict:
+async def get_media_by_name(media_name: str) -> dict:
     return await get_media_by_name_service(media_name)
 
 

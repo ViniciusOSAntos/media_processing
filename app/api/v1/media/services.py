@@ -69,12 +69,12 @@ async def upload_media_service(
 
         await file.seek(0)
         video_metadata = schemas.MediaMetadataSchema(**mock_metadata)
-        await save_file_tmp(file)
-        video_metadata_teste = await get_video_metadata(file.filename)
-        # import ipdb; ipdb.set_trace()
+        temp_file = await save_file_tmp(file)
+        video_metadata_teste = await get_video_metadata(temp_file)
         logger.debug(video_metadata_teste)
-        await create_video_metadata(db, video_metadata) # Insere no banco
-        await delete_file_tmp(file.filename)
+
+        await create_video_metadata(db, video_metadata_teste) # Insere no banco
+        await delete_file_tmp(temp_file)
 
 
     storage_client.close()
@@ -136,9 +136,9 @@ async def delete_media_by_name_service(
 
 async def create_video_metadata(db: Session, video_metadata: schemas.MediaMetadataSchema):
     new_video_metadata = models.VideoMetadata(
-        name=video_metadata.name,
-        codec=video_metadata.codec,
-        frame_rate=video_metadata.frame_rate
+        name=video_metadata.get("name"),
+        codec=video_metadata.get("codec"),
+        frame_rate=60
     )
     db.add(new_video_metadata)
     db.commit()
