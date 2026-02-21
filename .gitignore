@@ -1,3 +1,4 @@
+# Get a degfault python ignore for python
 # Project specifics ignore
 tmp/
 
@@ -208,3 +209,5 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+.DS_Store

@@ -50,4 +50,3 @@ async def create_media(
 )
 async def delete_media_by_name(media_name: str):
     await delete_media_by_name_service(media_name)
-# teste git congig

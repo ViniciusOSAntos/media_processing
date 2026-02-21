@@ -6,10 +6,13 @@ import pathlib
 
 from fastapi import UploadFile
 from loguru import logger
+from typing import List, Dict
+from google.cloud.storage import Blob
 from tempfile import NamedTemporaryFile, gettempdir
+
 UPLOAD_DIR = "tmp"
 
-async def iterate_blobs(blobs, prefix_params, media_name) -> dict:
+async def iterate_blobs(blobs: List[Blob] , prefix_params: Dict[str, str], media_name: str) -> Blob | None:
     for blob in blobs:
         logger.debug(blob.name)
         if blob.name == f"{prefix_params.get('prefix')}/{media_name}":
@@ -17,8 +20,12 @@ async def iterate_blobs(blobs, prefix_params, media_name) -> dict:
             metadata = blob.metadata or {}
 
             return blob
+    return None
 
-async def save_file_tmp(file: UploadFile):
+async def save_file_tmp(file: UploadFile) -> str:
+    if file.filename is None:
+        raise ValueError("File Name is Required")
+
     suffix = pathlib.Path(file.filename).suffix
     with NamedTemporaryFile(
         mode='w+b',
@@ -29,14 +36,14 @@ async def save_file_tmp(file: UploadFile):
         logger.debug(gettempdir())
         return temp_file.name
 
-async def delete_file_tmp(file_name: str):
+async def delete_file_tmp(file_name: str) -> None:
     if os.path.exists(file_name):
         os.remove(file_name)
         logger.debug("Temp File Deleted")
     else:
-        logger.error(f"Delete file failed, file {file_location} does NOT exist")
+        logger.error(f"Delete file failed, file {file_name} does NOT exist")
 
-async def get_video_metadata(file_name: str):
+async def get_video_metadata(file_name: str) -> Dict[str, str]:
     file_location = file_name
     logger.debug(f"File Location: {file_location}")
     return_metadata = {}
