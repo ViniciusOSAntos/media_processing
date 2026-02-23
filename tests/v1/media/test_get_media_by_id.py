@@ -6,7 +6,7 @@ from app.main import app
 
 client = TestClient(app)
 
-def test_post_blob():
+def test_post_blob() -> None:
     # Usar Fixtures
     # Não é antipadrao subir arquivos de vide/imagem no repo
     img_byte_arr = BytesIO()
@@ -27,7 +27,7 @@ def test_post_blob():
 
 
 
-def test_get_blob_by_name():
+def test_get_blob_by_name() -> None:
     response = client.get("/v1/media/test_file_red.jpg")
     assert response.status_code == 200
     # assert response.json() == {

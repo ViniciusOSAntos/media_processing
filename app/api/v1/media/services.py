@@ -1,5 +1,5 @@
 from uuid import uuid4
-from typing import List
+from typing import List, Dict
 from datetime import timedelta
 
 from fastapi import UploadFile, HTTPException
@@ -52,7 +52,7 @@ async def upload_media_service(
         blob.upload_from_string(
             file_content, content_type=file.content_type
         )
-        blob.make_public()
+        blob.make_public() # A princípio todas a mídias serão públicas
         metadata["name"] = file.filename
         metadata["id"] = id_blob
         metadata["created_at"] = blob.time_created
@@ -83,7 +83,7 @@ async def upload_media_service(
 
 async def get_media_by_name_service(
     media_name: str
-):
+) -> Dict[str, str]:
     # queria ajuda para estruturar os tratamentos de excessão
     storage_client = google.get_storage_client()
     bucket_name = f"bkt-media-processing-{settings.environment}"
@@ -134,7 +134,7 @@ async def delete_media_by_name_service(
     if blob_found:
         blob_found.delete()
 
-async def create_video_metadata(db: Session, video_metadata: schemas.MediaMetadataSchema):
+async def create_video_metadata(db: Session, video_metadata: Dict[str, str]):
     new_video_metadata = models.VideoMetadata(
         name=video_metadata.get("name"),
         codec=video_metadata.get("codec"),

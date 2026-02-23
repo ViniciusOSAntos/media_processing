@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, UploadFile, File, status, Request
 from sqlalchemy.orm import Session
+from typing import Dict
 
 from app.api.v1.media.services import (
     upload_media_service,
@@ -27,9 +28,8 @@ routes = APIRouter(prefix="/v1/media", tags=["media"])
     status_code=status.HTTP_200_OK,
     response_model=MediaReturnSchema
 )
-async def get_media_by_name(media_name: str) -> dict:
+async def get_media_by_name(media_name: str) -> Dict[str, str]:
     return await get_media_by_name_service(media_name)
-
 
 @routes.put(
     "/upload",
@@ -40,7 +40,7 @@ async def create_media(
     request: Request,
     files: List[UploadFile] = File(...),
     db: Session = Depends(get_db)
-) -> List[dict]:
+) -> List[Dict[str, str]]:
 
     return await upload_media_service(files, db)
 
@@ -48,5 +48,5 @@ async def create_media(
     "/{media_name}",
     status_code=status.HTTP_204_NO_CONTENT,
 )
-async def delete_media_by_name(media_name: str):
+async def delete_media_by_name(media_name: str) -> None:
     await delete_media_by_name_service(media_name)
