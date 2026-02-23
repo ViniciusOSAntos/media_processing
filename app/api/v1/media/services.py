@@ -61,19 +61,13 @@ async def upload_media_service(
 
         return_metadata.append(metadata)
 
-        mock_metadata = {
-            "name": "video_teste.mp4",
-            "codec": "h.264",
-            "frame_rate": 30,
-        }
-
         await file.seek(0)
-        video_metadata = schemas.MediaMetadataSchema(**mock_metadata)
         temp_file = await save_file_tmp(file)
-        video_metadata_teste = await get_video_metadata(temp_file)
-        logger.debug(video_metadata_teste)
+        video_metadata = await get_video_metadata(temp_file)
+        schemas.MediaMetadataSchema.model_validate(video_metadata)
+        logger.debug(video_metadata)
 
-        await create_video_metadata(db, video_metadata_teste) # Insere no banco
+        await create_video_metadata(db, video_metadata) # Insere no banco
         await delete_file_tmp(temp_file)
 
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from uuid import UUID
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 
 class MediaSchema(BaseModel):
@@ -40,6 +40,8 @@ class MediaReturnSchema(MediaSchema):
 
 # name,codec, frame_rate, created_at, updated_at
 class MediaMetadataSchema(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
     name: str = Field(
         ...,
         json_schema_extra={
