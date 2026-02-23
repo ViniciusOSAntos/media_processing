@@ -138,7 +138,7 @@ async def create_video_metadata(db: Session, video_metadata: Dict[str, str]):
     new_video_metadata = models.VideoMetadata(
         name=video_metadata.get("name"),
         codec=video_metadata.get("codec"),
-        frame_rate=60
+        frame_rate=video_metadata.get("frame_rate")
     )
     db.add(new_video_metadata)
     db.commit()
