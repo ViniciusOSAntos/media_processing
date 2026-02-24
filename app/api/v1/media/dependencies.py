@@ -51,12 +51,6 @@ async def get_video_metadata(file_name: str) -> Dict[str, str]:
     try:
         video_metadata = ffmpeg.probe(file_location)
         # TODO Pensar numa forma melhor de capturar os dados. Muito código repetido. Pode ajudar: show_entries='format:stream=index,codec_name,avg_frame_rate,r_frame_rate (passar no probe)
-        return_metadata["name"] = (
-            video_metadata
-            .get("format", {})
-            .get("filename", "")
-            .split("/")[-1]
-        )
 
         return_metadata["codec"] = (
             video_metadata
